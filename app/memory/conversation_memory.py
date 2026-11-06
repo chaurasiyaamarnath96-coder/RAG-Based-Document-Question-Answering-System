@@ -1,6 +1,11 @@
-from app.memory.session_store import (
-    chat_store
+from app.db.database import (
+    sessionmaker
 )
+
+from app.db.models import (
+    ChatMessage
+)
+from app.db.database import sessionLocal
 
 
 def add_message(
@@ -9,21 +14,96 @@ def add_message(
         content
 ):
 
-    if session_id not in chat_store:
+    db = sessionLocal()
 
-        chat_store[session_id] = []
+    try:
 
-    chat_store[session_id].append({
-        "role": role,
-        "content": content
-    })
+        message = ChatMessage(
 
+            session_id=session_id,
+
+            role=role,
+
+            content=content
+        )
+
+        db.add(
+            message
+        )
+
+        db.commit()
+
+    finally:
+
+        db.close()
+
+def get_sessions():
+
+    db = sessionLocal()
+
+    try:
+
+        sessions = (
+
+            db.query(
+                ChatMessage.session_id
+            )
+
+            .distinct()
+
+            .all()
+        )
+
+        return [
+
+            item[0]
+
+            for item
+            in sessions
+        ]
+
+    finally:
+
+        db.close()
 
 def get_history(
         session_id
 ):
 
-    return chat_store.get(
-        session_id,
-        []
-    )
+    db = sessionLocal()
+
+    try:
+
+        messages = (
+
+            db.query(
+                ChatMessage
+            )
+
+            .filter(
+                ChatMessage.session_id
+                == session_id
+            )
+
+            .all()
+        )
+
+        history = []
+
+        for msg in messages:
+
+            history.append(
+                {
+                    "role":
+                    msg.role,
+
+                    "content":
+                    msg.content
+                }
+            )
+
+        return history
+
+    finally:
+
+        db.close()

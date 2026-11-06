@@ -8,7 +8,8 @@ from app.vectordb.qdrant_connection import client
 def store_chunks(
         chunks,
         filename,
-        pages
+        pages,
+        session_id
 ):
     points = []
 
@@ -22,7 +23,9 @@ def store_chunks(
                 payload={
                     "text":chunk["text"],
                     "source":filename,
-                    "pages": chunk["page"]
+                    "pages": chunk["pages"],
+                    "session_id":chunk["session_id"]
+
                 }
             )
         )

@@ -22,7 +22,14 @@ from app.memory.conversation_memory import (
 )
 from app.retrieval.multi_query import (
         multi_query_retrieval
+
     )
+from app.llm.gemma_client import (
+    stream_answer
+)
+from app.db.database import sessionLocal
+from app.db.models import ChatSession
+
 
 def ask(
         query: str,
@@ -30,13 +37,25 @@ def ask(
 ):
     
     chunks = multi_query_retrieval(
-        query
+        query,
+        session_id
     )
 
     chunks = rerank(
         query,
         chunks
     )
+    print(chunks)
+    if not chunks:
+
+        return {
+            "answer":
+            "I could not find this information in the uploaded documents.",
+
+            "sources":[]
+        }
+
+    
     contexts = [
         chunk["text"]
         for chunk in chunks
@@ -86,11 +105,137 @@ def ask(
                     "file":
                     chunk["source"],
 
-                    "page":
+                    "pages":
                     chunk["page"]
                 }
             )
+    db = sessionLocal()
+
+    existing_session = (
+        db.query(ChatSession)
+        .filter(
+            ChatSession.session_id == session_id
+        )
+        .first()
+    )
+
+    if not existing_session:
+
+        new_session = ChatSession(
+            session_id=session_id,
+            title=query[:50]
+        )
+        print(
+        "CREATING SESSION:",
+        session_id,
+        query[:50]
+    )
+        db.add(new_session)
+        db.commit()
+        print("SESSION SAVED")
+
+    db.close()
     return {
         "answer":answer,
         "source": unique_sources
     }
+
+
+def stream_chat(
+        query,
+        session_id
+):
+
+    history = get_history(
+        session_id
+    )
+
+    chunks = multi_query_retrieval(
+        query,
+        session_id
+    )
+
+    chunks = rerank(
+        query,
+        chunks
+    )
+    if not chunks:
+
+        return {
+            "answer":
+            "I could not find this information in the uploaded documents.",
+
+            "sources":[]
+        }
+    print("Chunks:", chunks[0])
+
+    top_score = chunks[0].get(
+        "cross_score",
+        0
+    )
+
+    if top_score < 1:
+
+        return {
+            "answer":
+            "I could not find this information in the uploaded documents.",
+
+            "sources":[]
+        }
+
+    contexts = [
+
+        chunk["text"]
+
+        for chunk
+        in chunks
+    ]
+
+    prompt = build_prompt(
+        query,
+        contexts,
+        history
+    )
+
+    answer = ""
+
+    for token in stream_answer(
+            prompt
+    ):
+
+        answer += token
+
+        yield token
+
+    add_message(
+        session_id,
+        "user",
+        query
+    )
+
+    add_message(
+        session_id,
+        "assistant",
+        answer
+    )
+    db = sessionLocal()
+
+    existing_session = (
+        db.query(ChatSession)
+        .filter(
+            ChatSession.session_id == session_id
+        )
+        .first()
+    )
+
+    if not existing_session:
+
+        new_session = ChatSession(
+            session_id=session_id,
+            title=query[:50]
+        )
+
+        db.add(new_session)
+        db.commit()
+
+    db.close()

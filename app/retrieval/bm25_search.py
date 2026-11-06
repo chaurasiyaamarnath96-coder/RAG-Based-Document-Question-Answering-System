@@ -5,6 +5,7 @@ from app.vectordb.qdrant_connection import client
 
 def bm25search(
         query: str,
+        session_id: str,
         limit: int = 5
 ):
 
@@ -17,6 +18,10 @@ def bm25search(
     documents = []
 
     for point in records:
+        if point.payload.get(
+            "session_id"
+        ) != session_id:
+            continue
 
         documents.append(
             {
@@ -27,10 +32,16 @@ def bm25search(
                 point.payload.get(
                     "source",
                     ""
+                ),
+                "pages":
+                point.payload.get(
+                    "pages",
+                    0
                 )
             }
         )
-
+    if not documents:
+        return []
     tokenized_docs = [
 
         doc["text"].split()
@@ -59,7 +70,7 @@ def bm25search(
 
                 "source":
                 documents[idx]["source"],
-                "page": ["page"],
+                "pages": documents[idx]["pages"],
 
                 "score":
                 float(score)

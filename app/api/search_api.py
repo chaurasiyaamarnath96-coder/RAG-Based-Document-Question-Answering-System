@@ -9,7 +9,8 @@ router = APIRouter(
 
 @router.get("")
 async def search_docs(
-    query: str
+    query: str,
+    session_id
 ):
 
-    return RetrievalService.retrieve(query)
+    return RetrievalService.retrieve(query,session_id)

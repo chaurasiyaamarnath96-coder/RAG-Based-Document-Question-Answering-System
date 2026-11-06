@@ -8,7 +8,8 @@ class EmbeddingService:
     def process_text(
         text: str
     ):
-
+        if not text.strip():
+            return []
         chunks = (chunker.create_chunks(text))
         results = []
         for chunk in chunks:

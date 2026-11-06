@@ -4,10 +4,39 @@ from app.api.search_api import router as search_router
 from app.api.health import router as health_router
 from app.api.upload import router as upload_router
 from app.api.chat import router as chat_router
+from app.db.database import (
+    engine
+)
+
+from app.db.models import (
+    Base
+)
+
+from app.api.chat import (
+    router as chat_router
+)
+from app.api.history import (
+    router as history_router
+    )
+
+from app.api.feedback_api import (
+    router as feedback_router
+)
+
+
+Base.metadata.create_all(
+    bind=engine
+)
+
+
+
 from app.core.constants import (
     PROJECT_NAME,
     VERSION,
     DESCRIPTION
+)
+Base.metadata.create_all(
+    bind = engine
 )
 
 app = FastAPI(
@@ -28,6 +57,14 @@ app.include_router(
 app.include_router(
     chat_router
 )
+app.include_router(
+    history_router
+)
+
+app.include_router(
+    feedback_router
+)
+
 
 
 @app.get("/")

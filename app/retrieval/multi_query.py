@@ -8,12 +8,15 @@ from app.retrieval.retrieval_service import (
 
 
 def multi_query_retrieval(
-        query: str
+        query: str,
+        session_id
 ):
-
+    print(f"Original query: {query}")
+    queries = [query]
     queries = expand_query(
-        query
+        queries
     )
+    print(queries)
 
     queries.append(
         query
@@ -25,8 +28,12 @@ def multi_query_retrieval(
 
         results = (
             RetrievalService
-            .retrieve(q)
+            .retrieve(
+                q,
+                session_id)
         )
+        print(f"Results for query '{q}': {results}")
+        print(f"Number of results for query '{q}': {len(results)}")
 
         all_results.extend(
             results

@@ -4,7 +4,8 @@ import os
 from fastapi import (
     APIRouter,
     UploadFile,
-    File
+    File,
+    Form
 )
 
 
@@ -18,9 +19,11 @@ router = APIRouter(
 
 @router.post("")
 async def upload_pdf(
-    file: UploadFile = File(...)
+    file: UploadFile = File(...),
+    session_id: str =Form(...)
 
 ):
+    print("UPLOAD SESSION ID:", session_id)
     save_path = (f"data/pdfs/{file.filename}")
 
     with open(
@@ -28,11 +31,12 @@ async def upload_pdf(
         "wb"
     ) as buffer:
         buffer.write(await file.read())
-
+    print("UPLOAD SESSION ID:", session_id)
     results = (
         IngestService.process_pdf(
             save_path,
-            file.filename
+            file.filename,
+            session_id
         )
     )
     return {

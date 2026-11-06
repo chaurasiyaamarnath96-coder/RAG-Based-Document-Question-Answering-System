@@ -47,5 +47,12 @@ def rerank(
         x["cross_score"],
         reverse=True
     )
+    results = [
+
+        item
+
+        for item in results
+    ]
+
 
     return results[:top_k]

@@ -2,6 +2,27 @@ import fitz
 
 
 class PDFLoader:
+    @staticmethod
+    def clean_text(text: str):
+
+        replacements = {
+            "Ɵ": "ti",
+            "ﬁ": "fi",
+            "ﬂ": "fl",
+            "ﬀ": "ff",
+            "ﬃ": "ffi",
+            "ﬄ": "ffl",
+            "딋": "",
+            "딍": "",
+            "딌": "",
+            "떋": "",
+            "떌": "",
+        }
+
+        for old, new in replacements.items():
+            text = text.replace(old, new)
+
+        return text
 
     @staticmethod
     def extract_text(
@@ -17,11 +38,13 @@ class PDFLoader:
         for page_num, page in enumerate(
                 doc
         ):
+            text = page.get_text()
+            text = PDFLoader.clean_text(text)
 
             pages_data.append(
                 {
                     "text":
-                    page.get_text(),
+                    text,
 
                     "page":
                     page_num + 1

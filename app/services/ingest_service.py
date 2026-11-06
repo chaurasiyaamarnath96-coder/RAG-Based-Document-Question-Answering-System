@@ -16,9 +16,10 @@ class IngestService:
     @staticmethod
     def process_pdf(
             pdf_path,
-            filename
+            filename,
+            session_id
     ):
-
+        print("PROCESS_PDF SESSION:", session_id)
         pages_data = (
             PDFLoader.extract_text(
                 pdf_path
@@ -33,7 +34,9 @@ class IngestService:
 
             text = page_data["text"]
 
-            page = page_data["page"]
+            pages = page_data["page"]
+            if not text:
+                continue
 
             total_chars += len(
                 text
@@ -45,10 +48,14 @@ class IngestService:
                     text
                 )
             )
-
+            print("TEXT:", text[:100])
+            EmbeddingService.process_text(text)
+            print("Embeddings:", embeddings)
             for item in embeddings:
 
-                item["page"] = page
+                item["pages"] = pages
+                print("INGEST SESSION:", session_id)
+                item["session_id"] = session_id
 
             all_chunks.extend(
                 embeddings
@@ -56,7 +63,9 @@ class IngestService:
 
         store_chunks(
             all_chunks,
-            filename
+            filename,
+            pages,
+            session_id
         )
 
         return {
@@ -68,5 +77,6 @@ class IngestService:
             total_chars,
 
             "chunks":
-            len(all_chunks)
+            len(all_chunks),
+            "session_id":"string"
         }

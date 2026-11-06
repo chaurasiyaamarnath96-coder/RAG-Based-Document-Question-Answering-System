@@ -1,10 +1,17 @@
-for c in chunks:
+from app.db.database import sessionLocal
+from app.db.models import ChatSession
 
+db = sessionLocal()
+
+sessions = db.query(ChatSession).all()
+
+print("Total Sessions:", len(sessions))
+
+for s in sessions:
     print(
-        c["cross_score"]
+        s.id,
+        s.session_id,
+        s.title
     )
 
-    print(
-        c["text"][:100]
-    )
-
+db.close()

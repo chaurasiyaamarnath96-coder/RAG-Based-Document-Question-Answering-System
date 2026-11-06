@@ -15,18 +15,21 @@ class RetrievalService:
 
     @staticmethod
     def retrieve(
-            query
+            query,
+            session_id
     ):
 
         dense_results = (
             search(
-                query
+                query,
+                session_id
             )
         )
 
         bm25_results = (
             bm25search(
-                query
+                query,
+                session_id
             )
         )
 

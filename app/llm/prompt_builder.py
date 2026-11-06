@@ -4,33 +4,44 @@ def build_prompt(
         history
 ):
 
-    history_text = ""
-
-    for item in history:
-
-        history_text += (
-            f"{item['role']}: "
-            f"{item['content']}\n"
-        )
-
     context_text = "\n\n".join(
         contexts
     )
+    if not context_text:
+        return {
+            "answer": "I could not find this information in the uploaded documents.",
+            "context": "No context available.",
+            "source": []
+        }
 
-    return f"""
-You are a helpful assistant.
+    history_text = "\n".join(
+        [
+            f"{msg['role']}: {msg['content']}"
+            for msg in history
+        ]
+    )
+
+    prompt = f"""
+You are a document assistant.
+
+Use ONLY the provided context.
+
+If the answer is not found in the context, respond exactly:
+
+"I could not find this information in the uploaded documents."
+
+Do not use your own knowledge.
 
 Conversation History:
-
 {history_text}
 
 Context:
-
 {context_text}
 
 Question:
-
 {query}
 
 Answer:
 """
+
+    return prompt
