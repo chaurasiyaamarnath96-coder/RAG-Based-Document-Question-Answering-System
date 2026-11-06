@@ -1,6 +1,6 @@
 def normal_rerank(
         results,
-        top_k: int = 10
+        top_k: int = 15
 ):
 
     ranked_results = sorted(
