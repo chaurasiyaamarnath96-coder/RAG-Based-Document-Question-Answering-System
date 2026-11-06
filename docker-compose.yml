@@ -1,0 +1,23 @@
+services:
+
+  qdrant:
+    image: qdrant/qdrant:latest
+
+    ports:
+      - "6333:6333"
+
+    volumes:
+      - ./qdrant_storage:/qdrant/storage
+
+  fastapi:
+    build: .
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      - qdrant
+
+    environment:
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: 6333
